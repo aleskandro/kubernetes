@@ -4702,6 +4702,8 @@ func ValidatePodUpdate(newPod, oldPod *core.Pod, opts PodValidationOptions) fiel
 
 	// Handle validations specific to gated pods.
 	podIsGated := len(oldPod.Spec.SchedulingGates) > 0
+	fmt.Println("podIsGated", podIsGated, "opts.AllowMutableNodeSelectorAndNodeAffinity", opts.AllowMutableNodeSelectorAndNodeAffinity)
+
 	if opts.AllowMutableNodeSelectorAndNodeAffinity && podIsGated {
 		// Additions to spec.nodeSelector are allowed (no deletions or mutations) for gated pods.
 		if !apiequality.Semantic.DeepEqual(mungedPodSpec.NodeSelector, oldPod.Spec.NodeSelector) {
@@ -4728,7 +4730,7 @@ func ValidatePodUpdate(newPod, oldPod *core.Pod, opts PodValidationOptions) fiel
 			case mungedPodSpec.Affinity == nil && oldNodeAffinity != nil:
 				mungedPodSpec.Affinity = &core.Affinity{NodeAffinity: oldNodeAffinity} // +k8s:verify-mutation:reason=clone
 			default:
-				mungedPodSpec.Affinity.NodeAffinity = oldNodeAffinity // +k8s:verify-mutation:reason=clone
+				mungedPodSpec.Affinity = oldPod.Spec.Affinity // +k8s:verify-mutation:reason=clone
 			}
 		}
 	}
